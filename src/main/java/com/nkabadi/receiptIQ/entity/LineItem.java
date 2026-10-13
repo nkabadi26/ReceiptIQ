@@ -1,5 +1,6 @@
 package com.nkabadi.receiptIQ.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -26,10 +27,13 @@ public class LineItem {
 
 	private String description;
 
+	@Column(precision = 10, scale = 3)
 	private BigDecimal quantity = BigDecimal.ONE;
 
+	@Column(precision = 10, scale = 3)
 	private BigDecimal unitPrice;
 
+	@Column(precision = 10, scale = 2)
 	private BigDecimal amount;
 
 	@Enumerated(EnumType.STRING)

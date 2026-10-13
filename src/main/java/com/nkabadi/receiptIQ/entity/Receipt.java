@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,9 @@ public class Receipt {
 
 	private LocalDate purchaseDate;
 
+	private LocalTime purchaseTime;
+
+	@Column(precision = 10, scale = 2)
 	private BigDecimal total;
 
 	private String imagePath;
@@ -58,6 +62,14 @@ public class Receipt {
 
 	public void setPurchaseDate(LocalDate purchaseDate) {
 		this.purchaseDate = purchaseDate;
+	}
+
+	public LocalTime getPurchaseTime() {
+		return purchaseTime;
+	}
+
+	public void setPurchaseTime(LocalTime purchaseTime) {
+		this.purchaseTime = purchaseTime;
 	}
 
 	public BigDecimal getTotal() {
