@@ -8,5 +8,13 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug
+        type:
+          descriptor:
+            sql:
+              BasicBinder: trace
 
