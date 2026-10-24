@@ -9,8 +9,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.CreationTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +34,12 @@ public class Receipt {
 
 	@Column(precision = 10, scale = 2)
 	private BigDecimal total;
+
+	private boolean needsReview;
+
+	@CreationTimestamp
+	@Column(updatable = false, nullable = false)
+	private LocalDateTime createdAt;
 
 	private String imagePath;
 
@@ -78,6 +87,18 @@ public class Receipt {
 
 	public void setTotal(BigDecimal total) {
 		this.total = total;
+	}
+
+	public boolean isNeedsReview() {
+		return needsReview;
+	}
+
+	public void setNeedsReview(boolean needsReview) {
+		this.needsReview = needsReview;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
 	}
 
 	public String getImagePath() {

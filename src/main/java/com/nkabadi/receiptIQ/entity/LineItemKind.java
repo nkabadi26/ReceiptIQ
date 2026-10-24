@@ -4,5 +4,9 @@ public enum LineItemKind {
 	ITEM,
 	TAX,
 	DISCOUNT,
-	FEE
+	FEE,
+	TIP,
+	DEPOSIT,
+	ROUNDING,
+	OTHER
 }
