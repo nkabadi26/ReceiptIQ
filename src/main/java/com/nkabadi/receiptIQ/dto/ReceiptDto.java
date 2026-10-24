@@ -19,7 +19,7 @@ public class ReceiptDto {
 	@Nullable
 	private LocalDate purchaseDate;
 
-	@JsonPropertyDescription("Purchase time in HH:mm:ss format; omit if not visible.")
+	@JsonPropertyDescription("Purchase time as HH:mm:ss only, exactly as printed on the receipt. No timezone, no offset, no fractional seconds. Omit if not visible.")
 	@Nullable
 	private LocalTime purchaseTime;
 
