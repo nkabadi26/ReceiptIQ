@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Value;
 
 import com.nkabadi.receiptIQ.dto.ReceiptDto;
+import com.nkabadi.receiptIQ.entity.Receipt;
+import com.nkabadi.receiptIQ.service.ReceiptService;
 
 @RestController
 @RequestMapping ("/receipt")
@@ -32,11 +34,14 @@ public class ReceiptController {
 
     private final ChatClient chatClient;
     private final Path receiptDirectory;
+    private final ReceiptService receiptService;
 
     public ReceiptController(ChatClient.Builder chatClientBuilder,
-                    @Value("${RECEIPT_DIRECTORY}") String receiptDirectoryPath
+                    @Value("${RECEIPT_DIRECTORY}") String receiptDirectoryPath,
+                    ReceiptService receiptService
     ) {
         this.chatClient = chatClientBuilder.build();
+        this.receiptService = receiptService;
         try{
         this.receiptDirectory = Path.of(receiptDirectoryPath).toAbsolutePath().normalize();
         } catch (InvalidPathException exception) {
@@ -45,7 +50,7 @@ public class ReceiptController {
     }
 
     @GetMapping("/getLLMReceiptJson")
-    public ResponseEntity<String> getLLMReceiptJson(@RequestParam String fileName) {
+    public ResponseEntity<?> getLLMReceiptJson(@RequestParam String fileName) {
         if (!this.receiptDirectory.startsWith(RECEIPT_DIRECTORY)) {
             return ResponseEntity.badRequest().body("File must be inside the receipt directory.");
         }
@@ -75,8 +80,8 @@ public class ReceiptController {
                 .call()
                 .content();
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(response);
+        ReceiptDto receiptDto = RECEIPT_OUTPUT_CONVERTER.convert(response);
+        Receipt savedReceipt = receiptService.saveReceipt(receiptDto, fileName);
+        return ResponseEntity.ok(savedReceipt);
     }
 }

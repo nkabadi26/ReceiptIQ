@@ -6,7 +6,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class ReceiptDto {
 
 	@JsonPropertyDescription("Purchase time as HH:mm:ss only, exactly as printed on the receipt. No timezone, no offset, no fractional seconds. Omit if not visible.")
 	@Nullable
-	private LocalTime purchaseTime;
+	private String purchaseTime;
 
 	@JsonPropertyDescription("Receipt total exactly as printed; omit if unreadable.")
 	@Nullable
@@ -49,11 +48,11 @@ public class ReceiptDto {
 		this.purchaseDate = purchaseDate;
 	}
 
-	public LocalTime getPurchaseTime() {
+	public String getPurchaseTime() {
 		return purchaseTime;
 	}
 
-	public void setPurchaseTime(LocalTime purchaseTime) {
+	public void setPurchaseTime(String purchaseTime) {
 		this.purchaseTime = purchaseTime;
 	}
 

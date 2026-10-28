@@ -13,7 +13,7 @@ spring:
       genai:
         api-key: ${GEMINI_API_KEY}
         chat:
-          model: gemini-3.8-flash
+          model: ${GEMINI_API_MODEL}
 logging:
   level:
     org:

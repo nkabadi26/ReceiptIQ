@@ -35,7 +35,8 @@ public class Receipt {
 	@Column(precision = 10, scale = 2)
 	private BigDecimal total;
 
-	private boolean needsReview;
+	@Column(nullable = false)
+	private boolean needsReview = false;
 
 	@CreationTimestamp
 	@Column(updatable = false, nullable = false)

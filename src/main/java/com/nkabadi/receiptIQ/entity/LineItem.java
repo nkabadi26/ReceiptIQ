@@ -11,6 +11,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -47,6 +49,7 @@ public class LineItem {
 		this.id = id;
 	}
 
+	@JsonIgnore
 	public Receipt getReceipt() {
 		return receipt;
 	}
