@@ -26,12 +26,14 @@ public class ReceiptService {
 		this.receiptRepository = receiptRepository;
 	}
 
-	public Receipt saveReceipt(ReceiptDto receiptDto, String fileName) {
+	public Receipt saveReceipt(ReceiptDto receiptDto, String fileName, String rawExtraction) {
 		Objects.requireNonNull(receiptDto, "receiptDto must not be null");
 		Objects.requireNonNull(fileName, "fileName must not be null");
+		Objects.requireNonNull(rawExtraction, "rawExtraction must not be null");
 
 		Receipt receipt = new Receipt();
 		receipt.setMerchantName(receiptDto.getMerchantName());
+		receipt.setRawExtraction(rawExtraction);
 		receipt.setPurchaseDate(receiptDto.getPurchaseDate());
 		receipt.setTotal(receiptDto.getTotal());
 		receipt.setImagePath(fileName);

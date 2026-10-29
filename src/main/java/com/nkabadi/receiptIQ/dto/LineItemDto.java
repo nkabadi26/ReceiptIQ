@@ -48,8 +48,7 @@ public class LineItemDto {
 	}
 
 	public BigDecimal getAmount() {
-		// return amount;
-		return BigDecimal.ZERO; // Placeholder for demonstration; replace with actual logic as needed
+		return amount;
 	}
 
 	public void setAmount(BigDecimal amount) {

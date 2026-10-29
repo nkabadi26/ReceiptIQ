@@ -81,7 +81,7 @@ public class ReceiptController {
                 .content();
 
         ReceiptDto receiptDto = RECEIPT_OUTPUT_CONVERTER.convert(response);
-        Receipt savedReceipt = receiptService.saveReceipt(receiptDto, fileName);
+        Receipt savedReceipt = receiptService.saveReceipt(receiptDto, fileName, response);
         return ResponseEntity.ok(savedReceipt);
     }
 }

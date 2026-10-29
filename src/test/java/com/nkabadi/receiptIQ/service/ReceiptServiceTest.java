@@ -46,11 +46,12 @@ class ReceiptServiceTest {
 		tax.setKind(LineItemKind.TAX);
 		dto.setItems(List.of(item, tax));
 
-		Receipt savedReceipt = service.saveReceipt(dto, "receipt.jpg");
+		Receipt savedReceipt = service.saveReceipt(dto, "receipt.jpg", "{\"merchantName\":\"Market\"}");
 
 		assertEquals("Market", savedReceipt.getMerchantName());
 		assertEquals("receipt.jpg", savedReceipt.getImagePath());
 		assertEquals(new BigDecimal("12.50"), savedReceipt.getTotal());
+		assertEquals("{\"merchantName\":\"Market\"}", savedReceipt.getRawExtraction());
 		assertEquals(LocalTime.of(22, 11, 15), savedReceipt.getPurchaseTime());
 		assertFalse(savedReceipt.isNeedsReview());
 		assertEquals(2, savedReceipt.getItems().size());
@@ -71,7 +72,7 @@ class ReceiptServiceTest {
 		dto.setTotal(BigDecimal.ZERO);
 		dto.setItems(List.of());
 
-		Receipt savedReceipt = service.saveReceipt(dto, "receipt.jpg");
+		Receipt savedReceipt = service.saveReceipt(dto, "receipt.jpg", "{}");
 
 		assertNull(savedReceipt.getPurchaseTime());
 		assertTrue(savedReceipt.isNeedsReview());
@@ -91,7 +92,7 @@ class ReceiptServiceTest {
 		lineItem.setKind(LineItemKind.ITEM);
 		dto.setItems(List.of(lineItem));
 
-		Receipt savedReceipt = service.saveReceipt(dto, "receipt.jpg");
+		Receipt savedReceipt = service.saveReceipt(dto, "receipt.jpg", "{}");
 
 		assertTrue(savedReceipt.isNeedsReview());
 		assertNull(savedReceipt.getPurchaseDate());
