@@ -22,5 +22,6 @@ public enum CategoryKind {
 	FUEL,
 	GIFTS_SEASONAL,
 	SERVICES,
-	OTHER
+	OTHER,
+	TIP
 }

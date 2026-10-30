@@ -21,10 +21,10 @@ public class LineItemDto {
 	@JsonPropertyDescription("Line amount exactly as printed; use a negative value for discounts.")
 	private BigDecimal amount;
 
-	@JsonPropertyDescription("Classification of this line item.")
+	@JsonPropertyDescription("Classification of this line item. Use DISCOUNT only for a separate deduction that changes the amount paid, such as a coupon or a voided item with a negative amount. Never use DISCOUNT for a 'You saved' or 'Total savings' note when the item price is already the final price. All line amounts must add up to the receipt total.")
 	private LineItemKind kind;
 
-	@JsonPropertyDescription("Product code printed on the receipt, such as a UPC, SKU, barcode, or retailer item code. Return null if no product code is present.")
+	@JsonPropertyDescription("Product code printed on that line, such as a UPC, SKU, or retailer item code. Never use a transaction, receipt, invoice, order, or tracking number. If the line has no product code, omit this field.")
 	@Nullable
 	private String productCode;
 

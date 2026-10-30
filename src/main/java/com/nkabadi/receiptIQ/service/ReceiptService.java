@@ -1,6 +1,7 @@
 package com.nkabadi.receiptIQ.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -10,9 +11,11 @@ import java.util.Objects;
 
 import com.nkabadi.receiptIQ.dto.LineItemDto;
 import com.nkabadi.receiptIQ.dto.ReceiptDto;
+import com.nkabadi.receiptIQ.entity.CategoryKind;
 import com.nkabadi.receiptIQ.entity.LineItem;
 import com.nkabadi.receiptIQ.entity.Receipt;
 import com.nkabadi.receiptIQ.repository.ReceiptRepository;
+import com.nkabadi.receiptIQ.util.TextUtils;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -31,15 +34,17 @@ public class ReceiptService {
 		Objects.requireNonNull(fileName, "fileName must not be null");
 		Objects.requireNonNull(rawExtraction, "rawExtraction must not be null");
 
+		String merchantName = TextUtils.normalize(receiptDto.getMerchantName());
+		String purchaseTimeText = TextUtils.normalize(receiptDto.getPurchaseTime());
+
 		Receipt receipt = new Receipt();
-		receipt.setMerchantName(receiptDto.getMerchantName());
+		receipt.setMerchantName(merchantName);
 		receipt.setRawExtraction(rawExtraction);
 		receipt.setPurchaseDate(receiptDto.getPurchaseDate());
 		receipt.setTotal(receiptDto.getTotal());
 		receipt.setImagePath(fileName);
 
 		boolean invalidPurchaseTime = false;
-		String purchaseTimeText = receiptDto.getPurchaseTime();
 		if (purchaseTimeText != null) {
 			try {
 				receipt.setPurchaseTime(LocalTime.parse(purchaseTimeText, PURCHASE_TIME_FORMATTER));
@@ -55,13 +60,21 @@ public class ReceiptService {
 		boolean hasMissingAmount = false;
 
 		for (LineItemDto lineItemDto : lineItemDtos) {
+			String description = TextUtils.normalize(lineItemDto.getDescription());
+			String productCode = TextUtils.normalize(lineItemDto.getProductCode());
+
+			CategoryKind category = lineItemDto.getCategory();
+			if (category == null && lineItemDto.getKind() != null) {
+				category = lineItemDto.getKind().getDefaultCategory();
+			}
+
 			LineItem lineItem = new LineItem();
-			lineItem.setDescription(lineItemDto.getDescription());
+			lineItem.setDescription(description);
 			lineItem.setQuantity(lineItemDto.getQuantity());
 			lineItem.setUnitPrice(lineItemDto.getUnitPrice());
 			lineItem.setAmount(lineItemDto.getAmount());
-			lineItem.setProductCode(lineItemDto.getProductCode());
-			lineItem.setCategory(lineItemDto.getCategory());
+			lineItem.setProductCode(productCode);
+			lineItem.setCategory(category);
 			lineItem.setKind(lineItemDto.getKind());
 			receipt.addItem(lineItem);
 
@@ -73,7 +86,7 @@ public class ReceiptService {
 		}
 
 		boolean needsReview = receiptDto.getTotal() == null
-				|| receiptDto.getPurchaseDate() == null
+		        || receiptDto.getPurchaseDate() == null
 				|| invalidPurchaseTime
 				|| hasMissingAmount
 				|| lineItemsTotal.compareTo(receiptDto.getTotal()) != 0;
