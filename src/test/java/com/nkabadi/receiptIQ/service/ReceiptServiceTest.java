@@ -16,6 +16,7 @@ import java.util.List;
 
 import com.nkabadi.receiptIQ.dto.LineItemDto;
 import com.nkabadi.receiptIQ.dto.ReceiptDto;
+import com.nkabadi.receiptIQ.entity.CategoryKind;
 import com.nkabadi.receiptIQ.entity.LineItemKind;
 import com.nkabadi.receiptIQ.entity.Receipt;
 import com.nkabadi.receiptIQ.repository.ReceiptRepository;
@@ -39,6 +40,8 @@ class ReceiptServiceTest {
 		item.setQuantity(BigDecimal.ONE);
 		item.setAmount(new BigDecimal("10.00"));
 		item.setKind(LineItemKind.ITEM);
+		item.setProductCode("012345678905");
+		item.setCategory(CategoryKind.GROCERY);
 
 		LineItemDto tax = new LineItemDto();
 		tax.setDescription("Tax");
@@ -56,6 +59,8 @@ class ReceiptServiceTest {
 		assertFalse(savedReceipt.isNeedsReview());
 		assertEquals(2, savedReceipt.getItems().size());
 		assertSame(savedReceipt, savedReceipt.getItems().get(0).getReceipt());
+		assertEquals("012345678905", savedReceipt.getItems().get(0).getProductCode());
+		assertEquals(CategoryKind.GROCERY, savedReceipt.getItems().get(0).getCategory());
 		assertEquals(LineItemKind.TAX, savedReceipt.getItems().get(1).getKind());
 		assertNull(savedReceipt.getItems().get(1).getUnitPrice());
 	}

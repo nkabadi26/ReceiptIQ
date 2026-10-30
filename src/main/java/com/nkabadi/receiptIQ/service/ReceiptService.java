@@ -60,6 +60,8 @@ public class ReceiptService {
 			lineItem.setQuantity(lineItemDto.getQuantity());
 			lineItem.setUnitPrice(lineItemDto.getUnitPrice());
 			lineItem.setAmount(lineItemDto.getAmount());
+			lineItem.setProductCode(lineItemDto.getProductCode());
+			lineItem.setCategory(lineItemDto.getCategory());
 			lineItem.setKind(lineItemDto.getKind());
 			receipt.addItem(lineItem);
 

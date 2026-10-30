@@ -1,7 +1,9 @@
 package com.nkabadi.receiptIQ.dto;
 
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+import com.nkabadi.receiptIQ.entity.CategoryKind;
 import com.nkabadi.receiptIQ.entity.LineItemKind;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -92,6 +94,14 @@ public class ReceiptExtractionDto {
 		@JsonPropertyDescription("Classify this line using ITEM, TAX, DISCOUNT, FEE, TIP, DEPOSIT, ROUNDING, or OTHER.")
 		private LineItemKind kind;
 
+		@JsonPropertyDescription("Product code printed on the receipt, such as a UPC, SKU, barcode, or retailer item code. Return null if no product code is present.")
+		@Nullable
+		private String productCode;
+
+		@JsonPropertyDescription("Best matching category for the purchased item from CategoryKind. Use OTHER when no category fits confidently; return null for non-item line types.")
+		@Nullable
+		private CategoryKind category;
+
 		public String getDescription() {
 			return description;
 		}
@@ -130,6 +140,22 @@ public class ReceiptExtractionDto {
 
 		public void setKind(LineItemKind kind) {
 			this.kind = kind;
+		}
+
+		public String getProductCode() {
+			return productCode;
+		}
+
+		public void setProductCode(String productCode) {
+			this.productCode = productCode;
+		}
+
+		public CategoryKind getCategory() {
+			return category;
+		}
+
+		public void setCategory(CategoryKind category) {
+			this.category = category;
 		}
 	}
 }

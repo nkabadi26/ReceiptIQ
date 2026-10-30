@@ -41,6 +41,13 @@ public class LineItem {
 	@Enumerated(EnumType.STRING)
 	private LineItemKind kind;
 
+	@Column(nullable = true)
+	private String productCode;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = true)
+	private CategoryKind category;
+
 	public Long getId() {
 		return id;
 	}
@@ -96,6 +103,22 @@ public class LineItem {
 
 	public void setKind(LineItemKind kind) {
 		this.kind = kind;
+	}
+
+	public String getProductCode() {
+		return productCode;
+	}
+
+	public void setProductCode(String productCode) {
+		this.productCode = productCode;
+	}
+
+	public CategoryKind getCategory() {
+		return category;
+	}
+
+	public void setCategory(CategoryKind category) {
+		this.category = category;
 	}
 
 	@Override
