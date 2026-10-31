@@ -11,6 +11,10 @@ public class LineItemDto {
 	@JsonPropertyDescription("Item or charge description as printed on the receipt, without product codes, UPC or SKU numbers.")
 	private String description;
 
+	@JsonPropertyDescription("A plain-English name for this item, expanded from the abbreviated text printed on the receipt, using the merchant name and that retailer's usual abbreviation style as context (for example, 'GV ORG 2LB' at Walmart is a Great Value organic product). Only fill this when you are reasonably confident of what the item is. Do not guess. If the printed text is already readable, repeat it. If you cannot tell, omit this field.")
+	@Nullable
+	private String plainEngDesc;
+
 	@JsonPropertyDescription("Quantity shown for this line; use 1 if no quantity is printed.")
 	private BigDecimal quantity;
 
@@ -38,6 +42,14 @@ public class LineItemDto {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getPlainEngDesc() {
+		return plainEngDesc;
+	}
+
+	public void setPlainEngDesc(String plainEngDesc) {
+		this.plainEngDesc = plainEngDesc;
 	}
 
 	public BigDecimal getQuantity() {

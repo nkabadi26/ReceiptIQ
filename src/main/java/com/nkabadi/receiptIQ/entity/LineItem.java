@@ -29,6 +29,9 @@ public class LineItem {
 
 	private String description;
 
+	@Column(name = "plain_eng_desc", nullable = true)
+	private String plainEngDesc;
+
 	@Column(precision = 10, scale = 3)
 	private BigDecimal quantity = BigDecimal.ONE;
 
@@ -71,6 +74,14 @@ public class LineItem {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getPlainEngDesc() {
+		return plainEngDesc;
+	}
+
+	public void setPlainEngDesc(String plainEngDesc) {
+		this.plainEngDesc = plainEngDesc;
 	}
 
 	public BigDecimal getQuantity() {

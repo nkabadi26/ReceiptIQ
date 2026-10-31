@@ -62,6 +62,7 @@ public class ReceiptService {
 		for (LineItemDto lineItemDto : lineItemDtos) {
 			String description = TextUtils.normalize(lineItemDto.getDescription());
 			String productCode = TextUtils.normalize(lineItemDto.getProductCode());
+			String plainEngDesc = TextUtils.normalize(lineItemDto.getPlainEngDesc());
 
 			CategoryKind category = lineItemDto.getCategory();
 			if (category == null && lineItemDto.getKind() != null) {
@@ -70,6 +71,7 @@ public class ReceiptService {
 
 			LineItem lineItem = new LineItem();
 			lineItem.setDescription(description);
+			lineItem.setPlainEngDesc(plainEngDesc);
 			lineItem.setQuantity(lineItemDto.getQuantity());
 			lineItem.setUnitPrice(lineItemDto.getUnitPrice());
 			lineItem.setAmount(lineItemDto.getAmount());
