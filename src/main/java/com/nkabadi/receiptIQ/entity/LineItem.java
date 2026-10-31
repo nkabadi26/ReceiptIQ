@@ -32,6 +32,9 @@ public class LineItem {
 	@Column(name = "plain_eng_desc", nullable = true)
 	private String plainEngDesc;
 
+	@Column(name = "embedding_text", nullable = true)
+	private String embeddingText;
+
 	@Column(precision = 10, scale = 3)
 	private BigDecimal quantity = BigDecimal.ONE;
 
@@ -82,6 +85,14 @@ public class LineItem {
 
 	public void setPlainEngDesc(String plainEngDesc) {
 		this.plainEngDesc = plainEngDesc;
+	}
+
+	public String getEmbeddingText() {
+		return embeddingText;
+	}
+
+	public void setEmbeddingText(String embeddingText) {
+		this.embeddingText = embeddingText;
 	}
 
 	public BigDecimal getQuantity() {

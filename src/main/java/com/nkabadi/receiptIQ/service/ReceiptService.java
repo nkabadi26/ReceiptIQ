@@ -13,6 +13,7 @@ import com.nkabadi.receiptIQ.dto.LineItemDto;
 import com.nkabadi.receiptIQ.dto.ReceiptDto;
 import com.nkabadi.receiptIQ.entity.CategoryKind;
 import com.nkabadi.receiptIQ.entity.LineItem;
+import com.nkabadi.receiptIQ.entity.LineItemKind;
 import com.nkabadi.receiptIQ.entity.Receipt;
 import com.nkabadi.receiptIQ.repository.ReceiptRepository;
 import com.nkabadi.receiptIQ.util.TextUtils;
@@ -78,6 +79,9 @@ public class ReceiptService {
 			lineItem.setProductCode(productCode);
 			lineItem.setCategory(category);
 			lineItem.setKind(lineItemDto.getKind());
+			if (lineItemDto.getKind() == LineItemKind.ITEM) {
+				lineItem.setEmbeddingText(buildEmbeddingText(lineItem, merchantName));
+			}
 			receipt.addItem(lineItem);
 
 			if (lineItemDto.getAmount() == null) {
@@ -95,5 +99,16 @@ public class ReceiptService {
 		receipt.setNeedsReview(needsReview);
 
 		return receiptRepository.save(receipt);
+	}
+
+	private String buildEmbeddingText(LineItem lineItem, String merchentName) {
+		String category = lineItem.getCategory() == null ? null : lineItem.getCategory().name();
+		String description = TextUtils.normalize(lineItem.getDescription());
+		String plainEngDesc = TextUtils.normalize(lineItem.getPlainEngDesc());
+
+		return String.join(" ", java.util.stream.Stream.of(merchentName, category, description, plainEngDesc)
+				.filter(Objects::nonNull)
+				.filter(value -> !value.isBlank())
+				.toList());
 	}
 }
