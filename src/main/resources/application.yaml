@@ -17,16 +17,15 @@ spring:
         embedding:
           api-key: ${GEMINI_API_KEY}
           text:
-            options:
-              model: gemini-embedding-001
-              dimensions: 768
+            model: gemini-embedding-001
+            dimensions: 768
 logging:
   level:
     org:
       hibernate:
-        SQL: debug
+        SQL: warn
         type:
           descriptor:
             sql:
-              BasicBinder: trace
+              BasicBinder: warn
 

@@ -13,6 +13,10 @@ import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -34,6 +38,11 @@ public class LineItem {
 
 	@Column(name = "embedding_text", nullable = true)
 	private String embeddingText;
+
+	@Column(name = "embedding", nullable = true, columnDefinition = "vector(768)")
+	@JdbcTypeCode(SqlTypes.VECTOR)
+	@Array(length = 768)
+	private float[] embedding;
 
 	@Column(precision = 10, scale = 3)
 	private BigDecimal quantity = BigDecimal.ONE;
@@ -93,6 +102,14 @@ public class LineItem {
 
 	public void setEmbeddingText(String embeddingText) {
 		this.embeddingText = embeddingText;
+	}
+
+	public float[] getEmbedding() {
+		return embedding;
+	}
+
+	public void setEmbedding(float[] embedding) {
+		this.embedding = embedding;
 	}
 
 	public BigDecimal getQuantity() {

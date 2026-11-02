@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -17,17 +18,23 @@ import com.nkabadi.receiptIQ.entity.LineItemKind;
 import com.nkabadi.receiptIQ.entity.Receipt;
 import com.nkabadi.receiptIQ.repository.ReceiptRepository;
 import com.nkabadi.receiptIQ.util.TextUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ReceiptService {
+	private static final Logger logger = LoggerFactory.getLogger(ReceiptService.class);
 	private static final DateTimeFormatter PURCHASE_TIME_FORMATTER =
 			DateTimeFormatter.ofPattern("HH:mm:ss").withResolverStyle(ResolverStyle.STRICT);
 
 	private final ReceiptRepository receiptRepository;
+	private final EmbeddingModel embeddingModel;
 
-	public ReceiptService(ReceiptRepository receiptRepository) {
+	public ReceiptService(ReceiptRepository receiptRepository, EmbeddingModel embeddingModel) {
 		this.receiptRepository = receiptRepository;
+		this.embeddingModel = embeddingModel;
 	}
 
 	public Receipt saveReceipt(ReceiptDto receiptDto, String fileName, String rawExtraction) {
@@ -88,6 +95,25 @@ public class ReceiptService {
 				hasMissingAmount = true;
 			} else {
 				lineItemsTotal = lineItemsTotal.add(lineItemDto.getAmount());
+			}
+		}
+
+		List<String> embeddingTexts = new ArrayList<>();
+		List<LineItem> itemsToEmbed = new ArrayList<>();
+		for (LineItem item : receipt.getItems()) {
+			if (item.getEmbeddingText() != null && !item.getEmbeddingText().isBlank()) {
+				embeddingTexts.add(item.getEmbeddingText());
+				itemsToEmbed.add(item);
+			}
+		}
+		if (!embeddingTexts.isEmpty()) {
+			try {
+				List<float[]> embeddings = embeddingModel.embed(embeddingTexts);
+				for (int index = 0; index < Math.min(embeddings.size(), itemsToEmbed.size()); index++) {
+					itemsToEmbed.get(index).setEmbedding(embeddings.get(index));
+				}
+			} catch (Exception exception) {
+				logger.warn("Failed to generate line item embeddings; saving receipt without vectors.", exception);
 			}
 		}
 
