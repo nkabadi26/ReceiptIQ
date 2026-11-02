@@ -14,6 +14,12 @@ spring:
         api-key: ${GEMINI_API_KEY}
         chat:
           model: ${GEMINI_API_MODEL}
+        embedding:
+          api-key: ${GEMINI_API_KEY}
+          text:
+            options:
+              model: gemini-embedding-001
+              dimensions: 768
 logging:
   level:
     org:
