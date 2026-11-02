@@ -2,9 +2,9 @@ package com.nkabadi.receiptIQ;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.StringJoiner;
 
 import com.nkabadi.receiptIQ.repository.LineItemRepository;
+import com.nkabadi.receiptIQ.util.VectorTextUtils;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -25,19 +25,11 @@ public class SearchDemo {
 			for (String question : questions) {
 				float[] questionVector = embeddingModel.embed(question);
 				System.out.println(question);
-				for (Object[] result : lineItemRepository.findNearest(toVectorText(questionVector))) {
-					double distance = ((Number) result[2]).doubleValue();
-					System.out.printf(Locale.US, "%.4f %s%n", distance, result[1]);
+				for (Object[] result : lineItemRepository.findNearest(VectorTextUtils.toVectorText(questionVector), 5)) {
+					double distance = ((Number) result[7]).doubleValue();
+					System.out.printf(Locale.US, "%.4f %s%n", distance, result[4]);
 				}
 			}
 		};
-	}
-
-	private static String toVectorText(float[] vector) {
-		StringJoiner joiner = new StringJoiner(",", "[", "]");
-		for (float value : vector) {
-			joiner.add(Float.toString(value));
-		}
-		return joiner.toString();
 	}
 }

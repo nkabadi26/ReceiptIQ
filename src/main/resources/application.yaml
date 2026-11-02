@@ -19,6 +19,9 @@ spring:
           text:
             model: gemini-embedding-001
             dimensions: 768
+rag:
+  top-n: 12
+
 logging:
   level:
     org:
