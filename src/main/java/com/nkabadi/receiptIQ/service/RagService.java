@@ -3,7 +3,10 @@ package com.nkabadi.receiptIQ.service;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.StringJoiner;
 
 import com.nkabadi.receiptIQ.repository.LineItemRepository;
@@ -41,12 +44,13 @@ public class RagService {
 
         // 2. Retrieve the nearest receipt items using the existing native pgvector query.
         List<Object[]> items = lineItemRepository.findNearest(vectorText, topN);
+        items = netVoidedItems(items);
 
         // 3. Build the receipt context for the prompt, one item per line.
         StringBuilder receiptContext = new StringBuilder();
         for (Object[] item : items) {
             String merchant = text(item[1]);
-            String date = dateText(item[2]);
+            String date = optionalText(dateText(item[2]));
             String category = text(item[3]);
             String rawDescription = text(item[4]);
             String plainDescription = optionalText(item[5]);
@@ -57,7 +61,9 @@ public class RagService {
 
             StringJoiner details = new StringJoiner("; ");
             details.add("merchant=" + merchant);
-            details.add("date=" + date);
+            if (!date.isBlank()) {
+                details.add("date=" + date);
+            }
             details.add("category=" + category);
             details.add("raw_description=" + rawDescription);
             if (!plainDescription.isBlank()) {
@@ -71,10 +77,12 @@ public class RagService {
         }
 
         String prompt = "Write a short, natural answer in plain English. "
-                + "For each matching item mention the merchant, the date and the amount. "
+                + "For each matching item mention the merchant, the date and the amount, with one line per item. "
                 + "Do not repeat field names like merchant= or raw_description= and do not copy the item lines. "
-                + "Use only the receipt items below. "
-                + "If no item matches the question, say you could not find it in the receipts. Do not guess.\n\n"
+                + "Use only the receipt items below. Do not invent anything. "
+                + "If the question is about a broad category, such as snacks, groceries or tools, include every item that plausibly fits, not just the obvious ones. "
+                + "For items where the fit is uncertain, especially cryptic descriptions, still list them but say they might be a match. "
+                + "If nothing plausibly fits, say you could not find it in the receipts. Do not guess.\n\n"
                 + "Question: " + question + "\n\n"
                 + "Receipt items:\n" + receiptContext;
 
@@ -82,6 +90,64 @@ public class RagService {
 
         // 4. Ask the existing Gemini chat model to answer from the retrieved receipt items.
         return chatClient.prompt(prompt).call().content();
+    }
+
+    private List<Object[]> netVoidedItems(List<Object[]> items) {
+        if (items.isEmpty()) {
+            return items;
+        }
+
+        Set<Long> receiptIds = new HashSet<>();
+        for (Object[] item : items) {
+            if (item.length > 8 && item[8] != null) {
+                receiptIds.add(((Number) item[8]).longValue());
+            }
+        }
+        if (receiptIds.isEmpty()) {
+            return items;
+        }
+
+        List<Object[]> discounts = lineItemRepository.findDiscounts(new ArrayList<>(receiptIds));
+        Set<Integer> cancelledIndexes = new HashSet<>();
+        for (Object[] discount : discounts) {
+            String discountCode = optionalText(discount[1]);
+            if (discountCode.isBlank() || discount.length < 3 || !(discount[2] instanceof BigDecimal discountAmount)) {
+                continue;
+            }
+            Long discountReceiptId = ((Number) discount[0]).longValue();
+
+            for (int index = 0; index < items.size(); index++) {
+                if (cancelledIndexes.contains(index) || items.get(index).length <= 9 || items.get(index)[8] == null) {
+                    continue;
+                }
+                Object[] item = items.get(index);
+                if (((Number) item[8]).longValue() != discountReceiptId) {
+                    continue;
+                }
+
+                String itemCode = optionalText(item[9]);
+                if (!itemCode.equals(discountCode) || !(item[6] instanceof BigDecimal itemAmount)) {
+                    continue;
+                }
+                if (discountAmount.compareTo(itemAmount.negate()) != 0) {
+                    continue;
+                }
+
+                cancelledIndexes.add(index);
+                logger.info("RAG cancelled item: merchant={}, date={}, raw_description={}, amount={}, distance={}",
+                        text(item[1]), optionalText(dateText(item[2])), text(item[4]), amountText(item[6]),
+                        item.length > 7 && item[7] != null ? String.valueOf(item[7]) : "not returned");
+                break;
+            }
+        }
+
+        List<Object[]> retainedItems = new ArrayList<>();
+        for (int index = 0; index < items.size(); index++) {
+            if (!cancelledIndexes.contains(index)) {
+                retainedItems.add(items.get(index));
+            }
+        }
+        return retainedItems;
     }
 
     private static String text(Object value) {
@@ -99,7 +165,7 @@ public class RagService {
         if (value instanceof Date date) {
             return date.toLocalDate().toString();
         }
-        return text(value);
+        return optionalText(value);
     }
 
     private static String amountText(Object value) {
