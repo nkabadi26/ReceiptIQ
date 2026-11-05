@@ -8,6 +8,8 @@ import java.util.StringJoiner;
 
 import com.nkabadi.receiptIQ.repository.LineItemRepository;
 import com.nkabadi.receiptIQ.util.VectorTextUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RagService {
+    private static final Logger logger = LoggerFactory.getLogger(RagService.class);
+
     private final EmbeddingModel embeddingModel;
     private final LineItemRepository lineItemRepository;
     private final ChatClient chatClient;
@@ -45,8 +49,11 @@ public class RagService {
             String date = dateText(item[2]);
             String category = text(item[3]);
             String rawDescription = text(item[4]);
-            String plainDescription = text(item[5]);
+            String plainDescription = optionalText(item[5]);
             String amount = amountText(item[6]);
+            String distance = item.length > 7 && item[7] != null
+                    ? String.valueOf(item[7])
+                    : "not returned";
 
             StringJoiner details = new StringJoiner("; ");
             details.add("merchant=" + merchant);
@@ -58,12 +65,20 @@ public class RagService {
             }
             details.add("amount=" + amount);
             receiptContext.append(details).append('\n');
+
+            logger.info("RAG retrieved item: merchant={}, date={}, raw_description={}, amount={}, distance={}",
+                    merchant, date, rawDescription, amount, distance);
         }
 
-        String prompt = "Answer ONLY from the receipt items below. "
-                + "If the items do not contain the answer, say you could not find it in the receipts. Do not guess.\n\n"
+        String prompt = "Write a short, natural answer in plain English. "
+                + "For each matching item mention the merchant, the date and the amount. "
+                + "Do not repeat field names like merchant= or raw_description= and do not copy the item lines. "
+                + "Use only the receipt items below. "
+                + "If no item matches the question, say you could not find it in the receipts. Do not guess.\n\n"
                 + "Question: " + question + "\n\n"
                 + "Receipt items:\n" + receiptContext;
+
+        logger.info("RAG question before chat model call: {}", question);
 
         // 4. Ask the existing Gemini chat model to answer from the retrieved receipt items.
         return chatClient.prompt(prompt).call().content();
@@ -71,6 +86,10 @@ public class RagService {
 
     private static String text(Object value) {
         return value == null ? "unknown" : String.valueOf(value);
+    }
+
+    private static String optionalText(Object value) {
+        return value == null ? "" : String.valueOf(value).trim();
     }
 
     private static String dateText(Object value) {
