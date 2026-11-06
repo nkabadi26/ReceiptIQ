@@ -6,6 +6,7 @@ import java.util.Locale;
 import com.nkabadi.receiptIQ.repository.LineItemRepository;
 import com.nkabadi.receiptIQ.util.VectorTextUtils;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +15,8 @@ import org.springframework.context.annotation.Configuration;
 public class SearchDemo {
 
 	// @Bean /*Umcomment this to run the demo. Basically demo of how the vector serach works. */
-	CommandLineRunner runSearchTest(EmbeddingModel embeddingModel, LineItemRepository lineItemRepository) {
+	CommandLineRunner runSearchTest(EmbeddingModel embeddingModel, LineItemRepository lineItemRepository,
+			@Value("${spring.ai.google.genai.embedding.text.model}") String embeddingModelName) {
 		return args -> {
 			List<String> questions = List.of(
 					"what snacks did I buy?",
@@ -25,7 +27,7 @@ public class SearchDemo {
 			for (String question : questions) {
 				float[] questionVector = embeddingModel.embed(question);
 				System.out.println(question);
-				for (Object[] result : lineItemRepository.findNearest(VectorTextUtils.toVectorText(questionVector), 5)) {
+				for (Object[] result : lineItemRepository.findNearest(VectorTextUtils.toVectorText(questionVector), 5, embeddingModelName)) {
 					double distance = ((Number) result[7]).doubleValue();
 					System.out.printf(Locale.US, "%.4f %s%n", distance, result[4]);
 				}

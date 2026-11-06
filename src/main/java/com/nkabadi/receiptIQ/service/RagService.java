@@ -26,15 +26,18 @@ public class RagService {
     private final LineItemRepository lineItemRepository;
     private final ChatClient chatClient;
     private final int topN;
+    private final String embeddingModelName;
 
     public RagService(EmbeddingModel embeddingModel,
                       LineItemRepository lineItemRepository,
                       ChatClient.Builder chatClientBuilder,
-                      @Value("${rag.top-n:12}") int topN) {
+                      @Value("${rag.top-n:12}") int topN,
+                      @Value("${spring.ai.google.genai.embedding.text.model}") String embeddingModelName) {
         this.embeddingModel = embeddingModel;
         this.lineItemRepository = lineItemRepository;
         this.chatClient = chatClientBuilder.build();
         this.topN = topN;
+        this.embeddingModelName = embeddingModelName;
     }
 
     public String answer(String question) {
@@ -43,7 +46,7 @@ public class RagService {
         String vectorText = VectorTextUtils.toVectorText(questionEmbedding);
 
         // 2. Retrieve the nearest receipt items using the existing native pgvector query.
-        List<Object[]> items = lineItemRepository.findNearest(vectorText, topN);
+        List<Object[]> items = lineItemRepository.findNearest(vectorText, topN, embeddingModelName);
         items = netVoidedItems(items);
 
         // 3. Build the receipt context for the prompt, one item per line.

@@ -23,10 +23,12 @@ public interface LineItemRepository extends JpaRepository<LineItem, Long> {
 		join receipts r on r.id = li.receipt_id
 		where li.embedding is not null
 		  and li.kind = 'ITEM'
+		  and li.embedding_model = :currentModel
 		order by distance
 		limit :limit
 		""", nativeQuery = true)
-	List<Object[]> findNearest(@Param("q") String queryVector, @Param("limit") int limit);
+	List<Object[]> findNearest(@Param("q") String queryVector, @Param("limit") int limit,
+			@Param("currentModel") String currentModel);
 
 	@Query(value = """
 		select li.receipt_id, li.product_code, li.amount
