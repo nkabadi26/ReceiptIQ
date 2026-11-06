@@ -16,11 +16,14 @@ import com.nkabadi.receiptIQ.entity.CategoryKind;
 import com.nkabadi.receiptIQ.entity.LineItem;
 import com.nkabadi.receiptIQ.entity.LineItemKind;
 import com.nkabadi.receiptIQ.entity.Receipt;
+import com.nkabadi.receiptIQ.repository.LineItemRepository;
 import com.nkabadi.receiptIQ.repository.ReceiptRepository;
 import com.nkabadi.receiptIQ.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -30,11 +33,22 @@ public class ReceiptService {
 			DateTimeFormatter.ofPattern("HH:mm:ss").withResolverStyle(ResolverStyle.STRICT);
 
 	private final ReceiptRepository receiptRepository;
+	private final LineItemRepository lineItemRepository;
 	private final EmbeddingModel embeddingModel;
+	private final String embeddingModelName;
 
-	public ReceiptService(ReceiptRepository receiptRepository, EmbeddingModel embeddingModel) {
+	public ReceiptService(ReceiptRepository receiptRepository, EmbeddingModel embeddingModel, String embeddingModelName) {
+		this(receiptRepository, null, embeddingModel, embeddingModelName);
+	}
+
+	@Autowired
+	public ReceiptService(ReceiptRepository receiptRepository, LineItemRepository lineItemRepository,
+			EmbeddingModel embeddingModel,
+			@Value("${spring.ai.google.genai.embedding.text.model}") String embeddingModelName) {
 		this.receiptRepository = receiptRepository;
+		this.lineItemRepository = lineItemRepository;
 		this.embeddingModel = embeddingModel;
+		this.embeddingModelName = embeddingModelName;
 	}
 
 	public Receipt saveReceipt(ReceiptDto receiptDto, String fileName, String rawExtraction) {
@@ -110,7 +124,12 @@ public class ReceiptService {
 			try {
 				List<float[]> embeddings = embeddingModel.embed(embeddingTexts);
 				for (int index = 0; index < Math.min(embeddings.size(), itemsToEmbed.size()); index++) {
-					itemsToEmbed.get(index).setEmbedding(embeddings.get(index));
+					float[] embedding = embeddings.get(index);
+					if (embedding != null) {
+						LineItem item = itemsToEmbed.get(index);
+						item.setEmbedding(embedding);
+						item.setEmbeddingModel(embeddingModelName);
+					}
 				}
 			} catch (Exception exception) {
 				logger.warn("Failed to generate line item embeddings; saving receipt without vectors.", exception);
@@ -125,6 +144,51 @@ public class ReceiptService {
 		receipt.setNeedsReview(needsReview);
 
 		return receiptRepository.save(receipt);
+	}
+
+	public int backfillEmbeddings() {
+		List<LineItem> rows = lineItemRepository.findForEmbeddingBackfill(embeddingModelName);
+		int updated = 0;
+		int failedBatches = 0;
+		int batchSize = 20;
+
+		logger.info("Embedding backfill found {} rows.", rows.size());
+		for (int start = 0; start < rows.size(); start += batchSize) {
+			int end = Math.min(start + batchSize, rows.size());
+			List<LineItem> batch = rows.subList(start, end);
+			List<float[]> previousEmbeddings = batch.stream().map(LineItem::getEmbedding).toList();
+			List<String> previousModels = batch.stream().map(LineItem::getEmbeddingModel).toList();
+			try {
+				List<String> embeddingTexts = batch.stream()
+						.map(LineItem::getEmbeddingText)
+						.toList();
+				List<float[]> embeddings = embeddingModel.embed(embeddingTexts);
+				int batchUpdated = 0;
+
+				for (int index = 0; index < Math.min(embeddings.size(), batch.size()); index++) {
+					float[] embedding = embeddings.get(index);
+					if (embedding != null) {
+						LineItem item = batch.get(index);
+						item.setEmbedding(embedding);
+						item.setEmbeddingModel(embeddingModelName);
+						batchUpdated++;
+					}
+				}
+
+				lineItemRepository.saveAll(batch);
+				updated += batchUpdated;
+			} catch (Exception exception) {
+				failedBatches++;
+				for (int index = 0; index < batch.size(); index++) {
+					batch.get(index).setEmbedding(previousEmbeddings.get(index));
+					batch.get(index).setEmbeddingModel(previousModels.get(index));
+				}
+				logger.warn("Embedding backfill batch failed and was skipped; {} rows skipped.", batch.size(), exception);
+			}
+		}
+
+		logger.info("Embedding backfill updated {} rows; {} batches failed.", updated, failedBatches);
+		return updated;
 	}
 
 	private String buildEmbeddingText(LineItem lineItem, String merchentName) {

@@ -39,6 +39,9 @@ public class LineItem {
 	@Column(name = "embedding_text", nullable = true)
 	private String embeddingText;
 
+	@Column(name = "embedding_model", nullable = true)
+	private String embeddingModel;
+
 	@Column(name = "embedding", nullable = true, columnDefinition = "vector(768)")
 	@JdbcTypeCode(SqlTypes.VECTOR)
 	@Array(length = 768)
@@ -102,6 +105,14 @@ public class LineItem {
 
 	public void setEmbeddingText(String embeddingText) {
 		this.embeddingText = embeddingText;
+	}
+
+	public String getEmbeddingModel() {
+		return embeddingModel;
+	}
+
+	public void setEmbeddingModel(String embeddingModel) {
+		this.embeddingModel = embeddingModel;
 	}
 
 	public float[] getEmbedding() {

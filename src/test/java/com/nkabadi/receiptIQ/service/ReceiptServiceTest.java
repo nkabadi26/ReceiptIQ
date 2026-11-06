@@ -28,7 +28,7 @@ class ReceiptServiceTest {
 	void mapsReceiptAndIncludesTaxWhenReconcilingLineAmounts() {
 		ReceiptRepository repository = mock(ReceiptRepository.class);
 		when(repository.save(any(Receipt.class))).thenAnswer(invocation -> invocation.getArgument(0));
-		ReceiptService service = new ReceiptService(repository, mock(EmbeddingModel.class));
+		ReceiptService service = new ReceiptService(repository, mock(EmbeddingModel.class), "gemini-embedding-001");
 
 		ReceiptDto dto = new ReceiptDto();
 		dto.setMerchantName("Market");
@@ -70,7 +70,7 @@ class ReceiptServiceTest {
 	void leavesInvalidPurchaseTimeNullAndSetsNeedsReview() {
 		ReceiptRepository repository = mock(ReceiptRepository.class);
 		when(repository.save(any(Receipt.class))).thenAnswer(invocation -> invocation.getArgument(0));
-		ReceiptService service = new ReceiptService(repository, mock(EmbeddingModel.class));
+		ReceiptService service = new ReceiptService(repository, mock(EmbeddingModel.class), "gemini-embedding-001");
 
 		ReceiptDto dto = new ReceiptDto();
 		dto.setPurchaseDate(LocalDate.of(2026, 10, 24));
@@ -88,7 +88,7 @@ class ReceiptServiceTest {
 	void setsNeedsReviewWhenTotalOrPurchaseDateIsMissingOrLineAmountsDoNotReconcile() {
 		ReceiptRepository repository = mock(ReceiptRepository.class);
 		when(repository.save(any(Receipt.class))).thenAnswer(invocation -> invocation.getArgument(0));
-		ReceiptService service = new ReceiptService(repository, mock(EmbeddingModel.class));
+		ReceiptService service = new ReceiptService(repository, mock(EmbeddingModel.class), "gemini-embedding-001");
 
 		ReceiptDto dto = new ReceiptDto();
 		dto.setTotal(new BigDecimal("5.00"));

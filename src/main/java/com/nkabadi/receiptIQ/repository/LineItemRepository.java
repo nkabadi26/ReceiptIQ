@@ -35,4 +35,13 @@ public interface LineItemRepository extends JpaRepository<LineItem, Long> {
 		  and li.kind = 'DISCOUNT'
 		""", nativeQuery = true)
 	List<Object[]> findDiscounts(@Param("receiptIds") List<Long> receiptIds);
+
+	@Query(value = """
+		select *
+		from line_items
+		where kind = 'ITEM'
+		  and embedding_text is not null
+		  and (embedding_model is null or embedding_model <> :currentModel)
+		""", nativeQuery = true)
+	List<LineItem> findForEmbeddingBackfill(@Param("currentModel") String currentModel);
 }
