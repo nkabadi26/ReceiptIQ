@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.converter.BeanOutputConverter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,15 +22,16 @@ import com.nkabadi.receiptIQ.dto.ReceiptDto;
 
 @RestController
 public class HealthController {
-    private static final Path RECEIPT_DIRECTORY =
-            Path.of("D:\\Development\\ReceiptIQ\\documents\\TestReceipts").toAbsolutePath().normalize();
     private static final BeanOutputConverter<ReceiptDto> RECEIPT_OUTPUT_CONVERTER =
             new BeanOutputConverter<>(ReceiptDto.class);
 
     private final ChatClient chatClient;
+    private final Path receiptDirectory;
 
-    public HealthController(ChatClient.Builder chatClientBuilder) {
+    public HealthController(ChatClient.Builder chatClientBuilder,
+                            @Value("${receipts.directory}") String receiptDirectoryPath) {
         this.chatClient = chatClientBuilder.build();
+        this.receiptDirectory = Path.of(receiptDirectoryPath).toAbsolutePath().normalize();
     }
 
     @GetMapping("/ping")
@@ -48,12 +50,12 @@ public class HealthController {
     public ResponseEntity<String> transcribeReceipt(@RequestParam String fileName) {
         Path receiptPath;
         try {
-            receiptPath = RECEIPT_DIRECTORY.resolve(fileName).normalize();
+            receiptPath = receiptDirectory.resolve(fileName).normalize();
         } catch (InvalidPathException exception) {
             return ResponseEntity.badRequest().body("Invalid receipt file name.");
         }
 
-        if (!receiptPath.startsWith(RECEIPT_DIRECTORY)) {
+        if (!receiptPath.startsWith(receiptDirectory)) {
             return ResponseEntity.badRequest().body("File must be inside the receipt directory.");
         }
 

@@ -32,8 +32,6 @@ import com.nkabadi.receiptIQ.service.ReceiptService;
 @RestController
 @RequestMapping ("/receipt")
 public class ReceiptController {
-    private static final Path RECEIPT_DIRECTORY =
-            Path.of("D:\\Development\\ReceiptIQ\\documents\\TestReceipts").toAbsolutePath().normalize();
     private static final BeanOutputConverter<ReceiptDto> RECEIPT_OUTPUT_CONVERTER =
             new BeanOutputConverter<>(ReceiptDto.class);
     private static final int MODEL_MAX_ATTEMPTS = 3;
@@ -45,7 +43,7 @@ public class ReceiptController {
     private final ReceiptService receiptService;
 
     public ReceiptController(ChatClient.Builder chatClientBuilder,
-                    @Value("${RECEIPT_DIRECTORY}") String receiptDirectoryPath,
+                    @Value("${receipts.directory}") String receiptDirectoryPath,
                     ReceiptService receiptService
     ) {
         this.chatClient = chatClientBuilder.build();
@@ -107,11 +105,10 @@ public class ReceiptController {
 
     @GetMapping("/getLLMReceiptJson")
     public ResponseEntity<?> getLLMReceiptJson(@RequestParam String fileName) {
-        if (!this.receiptDirectory.startsWith(RECEIPT_DIRECTORY)) {
+        Path receiptPath = this.receiptDirectory.resolve(fileName).normalize();
+        if (!receiptPath.startsWith(this.receiptDirectory)) {
             return ResponseEntity.badRequest().body("File must be inside the receipt directory.");
         }
-
-        Path receiptPath = this.receiptDirectory.resolve(fileName).normalize();
         String normalizedFileName = receiptPath.getFileName().toString().toLowerCase(Locale.ROOT);
         MimeType mimeType;
         if (normalizedFileName.endsWith(".jpg") || normalizedFileName.endsWith(".jpeg")) {

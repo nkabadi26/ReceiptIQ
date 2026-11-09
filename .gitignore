@@ -35,3 +35,6 @@ build/
 
 ### SQL sesssions ###
 *.session.sql
+
+### Current Environment ###
+.env

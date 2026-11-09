@@ -19,6 +19,8 @@ spring:
           text:
             model: gemini-embedding-001
             dimensions: 768
+receipts:
+  directory: ${RECEIPT_DIRECTORY:/data/receipts}
 rag:
   top-n: 12
 
@@ -31,4 +33,3 @@ logging:
           descriptor:
             sql:
               BasicBinder: warn
-

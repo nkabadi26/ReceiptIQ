@@ -1,0 +1,10 @@
+target/
+.git/
+.vscode/
+.idea/
+.env
+*.session.sql
+**/receipts/
+**/receipt-images/
+**/receipt_images/
+**/TestReceipts/
