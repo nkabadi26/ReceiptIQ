@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "ReceiptIqApplication",
+            "request": "launch",
+            "mainClass": "com.nkabadi.receiptIQ.ReceiptIqApplication",
+            "projectName": "receiptIQ",
+            "env": {"DB_PASSWORD": "<your-database-password>",
+                    "GEMINI_API_KEY": "<your-gemini-api-key>",
+                    "GEMINI_API_MODEL": "gemini-3.5-flash-lite",
+                    "RECEIPT_DIRECTORY": "<absolute-path-to-receipts-folder>"
+                }
+        }
+    ]
+}

@@ -30,4 +30,8 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
-.vscode/
+.vscode/*
+!.vscode/launch.example.json
+
+### SQL sesssions ###
+*.session.sql
