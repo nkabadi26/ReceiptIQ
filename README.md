@@ -103,4 +103,4 @@ Note:
 
 ## License
 
-Copyright (c) 2026 Narayan Kabadi. All rights reserved. Contact me for permission to use.
+Copyright (c) 2026 Narayan Kabadi. All rights reserved. Contact kabaditech@gmail.com for permission to use.
