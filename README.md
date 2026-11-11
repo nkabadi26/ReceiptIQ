@@ -22,13 +22,51 @@ Receipt image -> Gemini structured output -> PostgreSQL receipt and line-item st
 - PostgreSQL with pgvector and Hibernate Vector
 - Maven
 
-## How to run
+## Run with Docker
+
+1. Prerequisites: Docker Desktop (or Docker Engine with the compose plugin), a Gemini API key, and a folder on your PC with receipt images.
+2. Clone the repo and open a terminal in the project folder.
+3. Copy `.env.example` to `.env`:
+
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   `.env` is git-ignored and holds real secrets, so never commit it.
+   `GEMINI_API_MODEL`: the Gemini chat model name (required)
+4. Fill in `DB_PASSWORD`, `GEMINI_API_KEY`, `GEMINI_API_MODEL`, and `RECEIPT_DIRECTORY_HOST`. `RECEIPT_DIRECTORY_HOST` is the receipts folder on your PC; use forward slashes, for example `D:/Receipts`. It is mounted read-only into the container.
+5. Make sure nothing else uses port 5432 or 8080, including local Postgres.
+6. Run Docker Compose and wait for `Started ReceiptIqApplication`:
+
+   ```text
+   docker compose up --build
+   ```
+
+7. Try the endpoints listed in Example requests below (load a receipt first), for example:
+
+   ```text
+   http://localhost:8080/api/smart-ask?q=...
+   ```
+
+8. Stop the services with `docker compose down`; this keeps database data. To delete the database volume as well:
+
+   ```text
+   docker compose down -v
+   ```
+
+## Run in an IDE (alternative to Docker)
 
 1. Start PostgreSQL with pgvector:
 
    ```powershell
    docker run --name receiptiq-postgres -e POSTGRES_PASSWORD=<database-password> -e POSTGRES_DB=postgres -p 5432:5432 -d pgvector/pgvector:pg16
    ```
+
+   This container has no volume, so receipts and vectors are lost if it is removed. Add `-v receiptiq-data:/var/lib/postgresql/data` to keep them.
 
 2. Enable the pgvector extension in PostgreSQL:
 
@@ -92,13 +130,22 @@ Before querying receipts, load receipts first. Supported image formats are `.jpg
   curl.exe -X POST http://localhost:8080/api/admin/backfill-embeddings
   ```
 
+
 ## Design decisions and known limits
 
-TODO
+### Design decisions
 
-Note: 
-  The folder endpoint has no duplicate check. Loading the same folder twice creates duplicate receipts.
-  Data lives inside the container. If the container is removed, all receipts and vectors are lost. Add a volume (for example -v receiptiq-data:/var/lib/postgresql/data) to keep the data.
+- The embedding model (`gemini-embedding-001`, 768 dimensions) is fixed in `application.yaml` so users cannot mix models. Vectors from different models are not comparable. Each line item stores its `embedding_model`; search filters by the current model, and `POST /api/admin/backfill-embeddings` re-embeds old rows.
+- The chat model comes from the required `GEMINI_API_MODEL` environment variable with no fallback. It can change without affecting stored data.
+- Vector search returns the top N matches (`rag.top-n`, default 12), not a similarity cutoff.
+- Totals come from SQL on `receipts.total`, not LLM arithmetic.
+- The smart router lets Gemini pick SQL or RAG, Java validates the choice, and any failure falls back to RAG.
+- If embedding fails, the receipt still saves with null vectors and can be backfilled later.
+
+### Known limits
+
+- The folder endpoint has no duplicate check. Loading the same folder twice creates duplicate receipts.
+- `POST /api/admin/backfill-embeddings` has no authentication, so do not expose this app publicly as is.
 
 
 ## License
