@@ -13,6 +13,8 @@ ReceiptIQ extracts receipt data, stores receipt embeddings in PostgreSQL, and an
 
 Receipt image -> Gemini structured output -> PostgreSQL receipt and line-item storage. Question -> smart router -> SQL total or RAG answer from vector search results.
 
+A detailed architecture document is in progress and will be added to this repository.
+
 ## Tech stack
 
 - Java 25
