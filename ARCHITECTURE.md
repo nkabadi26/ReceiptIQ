@@ -59,9 +59,9 @@ flowchart LR
 
 Two tables. The receipt is the master record, line items hang off it.
 
-**receipts**: merchant, receipt date (nullable), total exactly as printed, `needsReview` flag.
+**receipts**: `merchantName`, `purchaseDate` and `purchaseTime` (both nullable), `total` exactly as printed, `needsReview` flag, `createdAt`, `imagePath`, `rawExtraction` (raw extraction text, kept for verification).
 
-**line_items**: receipt reference, `kind` (ITEM, TAX, TIP, FEE, DISCOUNT), description exactly as printed, `plain_eng_desc` (the model's readable expansion, null when unsure), product code, amount, category, `embedding_text`, `embedding` (vector, 768), `embedding_model` (name of the model that produced the vector).
+**line_items**: receipt reference, `kind` (enum: ITEM, TAX, TIP, FEE, DISCOUNT), `category` (enum `CategoryKind`), `description` exactly as printed, `plain_eng_desc` (the model's readable expansion, null when unsure), `quantity`, `unitPrice`, `amount`, `productCode`, `embedding_text`, `embedding` (vector, 768), `embedding_model` (name of the model that produced the vector).
 
 Notes:
 
